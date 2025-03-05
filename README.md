@@ -233,6 +233,51 @@ The bot also maintains statistics on on-time and late arrivals and persists data
    sudo systemctl restart readyup.service
    ```
 
+## Setting the Correct Timezone on Your Droplet
+
+If your bot’s time calculations appear off, it may be due to an incorrect system timezone on your droplet. The bot uses the system's timezone (via `datetime.now()`), so ensuring the correct timezone is set is crucial.
+
+### Method 1: Using `timedatectl` (Recommended)
+
+1. **Check the current timezone:**
+   ```bash
+   timedatectl
+   ```
+
+2. **List available timezones (e.g., for Europe):**
+   ```bash
+   timedatectl list-timezones | grep Europe
+   ```
+
+3. **Set the timezone to your preferred region (e.g., Stockholm or Berlin):**
+   ```bash
+   sudo timedatectl set-timezone Europe/Stockholm
+   ```
+   or
+   ```bash
+   sudo timedatectl set-timezone Europe/Berlin
+   ```
+
+4. **Verify the change:**
+   ```bash
+   timedatectl
+   ```
+
+### Method 2: Using `dpkg-reconfigure` (Debian/Ubuntu Systems)
+
+1. **Reconfigure the timezone:**
+   ```bash
+   sudo dpkg-reconfigure tzdata
+   ```
+
+2. **Follow the prompts** to select your geographic area (e.g., Europe) and the appropriate city.
+3. **Confirm the system time:**
+   ```bash
+   date
+   ```
+
+After updating the timezone, your bot will use the correct local time for scheduling notifications and other time-based functions.
+
 ## Additional Notes
 
 - The bot automatically creates and updates `user_data.json` in the project directory.
