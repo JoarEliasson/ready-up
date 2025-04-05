@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import atexit
-from commands import set_timezone
 from config import DISCORD_TOKEN, USER_DATA_FILE
 from models import UserManager
 from commands.info import info
@@ -10,8 +9,9 @@ from commands.arrived import arrived
 from commands.stats import stats
 from commands.clear_eta import clear_eta
 from commands.rules import rules
-from events.on_ready import on_ready
-from events.on_voice_state_update import on_voice_state_update
+from events.ready_and_voice import EventHandler
+# Not yet implemented
+#from commands.set_timezone import set_timezone
 
 # Bot intents (permissions)
 intents = discord.Intents.default()
@@ -37,11 +37,15 @@ bot.add_command(set_eta)
 bot.add_command(clear_eta)
 bot.add_command(arrived)
 bot.add_command(stats)
-bot.add_command(set_timezone)
+# Not yet implemented
+#bot.add_command(set_timezone)
 
-# Add events
-bot.event(on_ready(bot))
-bot.event(on_voice_state_update(bot))
+# Setup hook for events
+async def setup_hook():
+    await bot.add_cog(EventHandler(bot))
+
+# Register the setup hook
+bot.setup_hook = setup_hook
 
 # Start the bot
 if __name__ == "__main__":
