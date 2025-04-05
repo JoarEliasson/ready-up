@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
 import atexit
-from commands import set_timezone, info
+from commands import set_timezone
 from config import DISCORD_TOKEN, USER_DATA_FILE
 from models import UserManager
+from commands.info import info
 from commands.eta import set_eta
 from commands.arrived import arrived
 from commands.stats import stats
