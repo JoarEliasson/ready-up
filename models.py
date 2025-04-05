@@ -45,10 +45,17 @@ class UserManager:
     def load_from_file(self, filename):
         if os.path.exists(filename):
             with open(filename, "r") as f:
-                data = json.load(f)
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    print(f"Error decoding JSON from {filename}. Starting with an empty user list.")
+                    data = {}
             for user_id_str, user_data in data.items():
                 user_id = int(user_id_str)
                 self.users[user_id] = User.from_dict(user_data)
+        else:
+            print(f"File {filename} does not exist. Starting with empty user data.")
+            self.users = {}
 
     def save_to_file(self, filename):
         data = {str(user_id): user.to_dict() for user_id, user in self.users.items()}
