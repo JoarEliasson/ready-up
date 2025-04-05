@@ -34,3 +34,24 @@ RULES_MESSAGE = """
 
 **======================================================**
 """
+
+INFO_MESSAGE = """
+all the bot commands
+**================== ReadyUp Bot Info ==================**
+**Set Your Expected Arrival Time (ETA):**
+   - Use `!eta HH:MM` to set your ETA in 24-hour format (e.g., `!eta 19:00`).
+**Mark Your Arrival:**
+    - Automatically: Join any voice channel.
+    - Manually: Use `!arrived` in chat.
+**Commands**
+    - All commands start with `!`
+    - `!eta HH:MM`: Set your ETA.
+    - `!arrived`: Mark yourself as arrived.
+    - `!clear_eta`: Clear your ETA.
+    - `!stats`: View your stats.
+    - `!stats @User`: View another user's stats.
+    - `!set_timezone`: Set your timezone.
+    - `!rules`: View the rules.
+    - `!info`: View this info message.
+**======================================================**
+"""

@@ -1,7 +1,7 @@
-import os
 import discord
 from discord.ext import commands
 import atexit
+from commands import set_timezone, info
 from config import DISCORD_TOKEN, USER_DATA_FILE
 from models import UserManager
 from commands.eta import set_eta
@@ -11,7 +11,6 @@ from commands.clear_eta import clear_eta
 from commands.rules import rules
 from events.on_ready import on_ready
 from events.on_voice_state_update import on_voice_state_update
-from functools import partial
 
 # Bot intents (permissions)
 intents = discord.Intents.default()
@@ -31,6 +30,7 @@ user_manager.load_from_file(USER_DATA_FILE)
 atexit.register(lambda: user_manager.save_to_file(USER_DATA_FILE))
 
 # Add commands
+bot.add_command(info)
 bot.add_command(rules)
 bot.add_command(set_eta)
 bot.add_command(clear_eta)
