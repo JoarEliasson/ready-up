@@ -4,21 +4,15 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-# Replace 'youruser' with the actual user and group you want to run the bot as.
-# This should be a non-root user for security.
 Type=simple
-User=youruser              # ← change
-Group=youruser             # ← change
-WorkingDirectory=/home/youruser/ready-up
-# The full path to the project's root directory.
-# This must match the location where you cloned the repository.
-ExecStart=/home/youruser/ready-up/venv/bin/python3 /home/youruser/ready-up/src/main.py
+User=youruser   # ← change
+Group=youruser  # ← change
+WorkingDirectory=/opt/ready-up
+ExecStart=/opt/ready-up/venv/bin/python /opt/ready-up/src/main.py
 
 Restart=on-failure
 RestartSec=5s
 
-# Direct all output to the system's journal for logging.
-# Use 'journalctl -u readyup.service -f' to view logs.
 StandardOutput=journal
 StandardError=journal
 

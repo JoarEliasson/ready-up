@@ -12,101 +12,149 @@ This guide provides step-by-step instructions for deploying the ReadyUp Bot on a
     *   **Authentication:** Select **SSH Keys** and add your public SSH key. This is significantly more secure than using a password.
     *   **Finalize:** Choose a hostname (e.g., `readyup-bot-server`) and click "Create Droplet".
 
-2.  **Initial Server Setup (Security Best Practices):**
-    *   Once the droplet is created, copy its public IP address.
-    *   Connect to your server as the `root` user via SSH:
+2.  **Initial Server Setup:**
+    *   Connect to your new server as the `root` user:
         ```bash
         ssh root@YOUR_DROPLET_IP
         ```
-    *   Create a new non-root user (replace `youruser` with a username of your choice):
+    *   Update all system packages to patch any security vulnerabilities:
+        ```bash
+        apt update && apt upgrade -y
+        ```
+    *   Create a new non-root user for running the bot (replace `youruser`):
         ```bash
         adduser youruser
         ```
-    *   Give this user `sudo` (administrative) privileges:
+    *   Give this user administrative privileges:
         ```bash
         usermod -aG sudo youruser
         ```
-    *   Set up a basic firewall (`ufw`) to allow only SSH traffic:
+
+3.  **Authorize SSH Key for the New User (CRITICAL STEP):**
+    *   While still logged in as `root`, copy the authorized SSH key to your new user's account. This allows you to log in directly as that user.
+        ```bash
+        # This command copies the keys and sets the correct ownership and permissions.
+        rsync --archive --chown=youruser:youruser /root/.ssh /home/youruser
+        ```
+
+4.  **Harden and Finalize Setup:**
+    *   Enable the Uncomplicated Firewall (`ufw`) to allow only SSH traffic:
         ```bash
         ufw allow OpenSSH
         ufw enable
-        # Press 'y' and Enter to confirm.
         ```
-    *   Log out of the root account (`exit`) and log back in as your new, non-root user:
+        *(Press 'y' and Enter to confirm.)*
+    *   Log out of the `root` account (`exit`). From now on, you will work as your new user.
+
+5.  **Log in as Your New User:**
+    ```bash
+    ssh youruser@YOUR_DROPLET_IP
+    ```
+    *If the login fails with a permission error, it's likely because your home directory permissions are too strict. Run this command on your local machine to fix it, then try logging in again:*
+    ```bash
+    # This command is run on your LOCAL machine, not the server.
+    ssh root@YOUR_DROPLET_IP "chmod 755 /home/youruser"
+    ```
+
+## Step 2: Install Dependencies and Deploy Code
+
+1.  **Install Python and Git:**
+    ```bash
+    sudo apt install python3-pip python3.10-venv git -y
+    ```
+
+2.  **Deploy the Bot to `/opt`:**
+    *The `/opt` directory is the standard location for optional, third-party software on Linux, which avoids potential home directory permission issues with `systemd` services.*
+    *   Clone the repository directly into `/opt`:
         ```bash
-        ssh youruser@YOUR_DROPLET_IP
+        sudo git clone https://github.com/JoarEliasson/ready-up.git /opt/ready-up
+        ```
+    *   Give your user ownership of the new directory so you can edit files without `sudo`:
+        ```bash
+        sudo chown -R youruser:youruser /opt/ready-up
         ```
 
-## Step 2: Install Bot Dependencies
-
-1.  **Update System Packages:**
+3.  **Navigate to the Project and Set Up Environment:**
     ```bash
-    sudo apt update && sudo apt upgrade -y
+    cd /opt/ready-up
     ```
+    *   Create the Python virtual environment:
+        ```bash
+        python3 -m venv venv
+        ```
+    *   Activate the virtual environment:
+        ```bash
+        source venv/bin/activate
+        ```
+    *   Install the project's Python packages:
+        ```bash
+        pip install -r requirements.txt
+        ```
 
-2. **Install Python 3.10+ (Ubuntu 22.04 ships with 3.10) plus tooling:**
-    ```bash
-    sudo apt install python3.10-venv python3-pip -y
-    ```
-
-3.  **Install Git:**
-    ```bash
-    sudo apt install git -y
-    ```
-
-## Step 3: Deploy the Bot Code
-
-1.  **Clone Your Repository:**
-    ```bash
-    git clone https://github.com/JoarEliasson/ready-up.git
-    ```
-
-2.  **Navigate into the Project Directory:**
-    ```bash
-    cd ready-up
-    ```
-
-3.  **Set Up the Python Virtual Environment:**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-4.  **Install Project Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-5.  **Create and Configure the Environment File:**
-    *   Copy the example: `cp .env.example .env`
-    *   Edit the file using a terminal editor like `nano`:
+4.  **Configure Environment Variables:**
+    *   Copy the example file: `cp .env.example .env`
+    *   Edit the file using `nano`:
         ```bash
         nano .env
         ```
-    *   Fill in all the required values (`DISCORD_TOKEN`, etc.).
-    *   Save and exit (`Ctrl+X`, then `Y`, then `Enter`).
+    *   Fill in all required values (especially `DISCORD_TOKEN`).
+    *   Save and exit (`Ctrl+X`, `Y`, `Enter`).
 
-## Step 4: Run the Bot as a `systemd` Service
+## Step 3: Run the Bot as a `systemd` Service
 
-`systemd` is the standard process manager on Ubuntu. This will ensure your bot starts automatically on boot and restarts if it ever crashes.
+`systemd` will manage the bot process, ensuring it starts on boot and restarts if it fails.
 
-1. **Edit the `readyup.service` unit file** (full example below).  
-   Make sure to update:
-   - `User=` / `Group=` – the non-root user you created
-   - `WorkingDirectory=` – path to your repo
-   - `EnvironmentFile=` – points to your `.env`
-   - `ExecStart=` – full path to the venv python and `src/main.py`
-
-2.  **Install and Enable the Service:**
-    *   Copy the service file to the systemd system directory:
+1.  **Create the Service File:**
+    *   Use `nano` to create and edit the service file with `sudo`:
         ```bash
-        sudo cp readyup.service /etc/systemd/system/readyup.service
+        sudo nano /etc/systemd/system/readyup.service
         ```
-    *   Reload the systemd manager to recognize the new service:
+    *   Copy and paste the entire block below into the editor. **Ensure `User` and `Group` match the username you created.**
+
+        ```ini
+        [Unit]
+        Description=ReadyUp Discord Bot
+        After=network-online.target
+        Wants=network-online.target
+        
+        [Service]
+        # The user and group that will run the service.
+        # Replace 'youruser' with the actual user and group you want to run the bot as.
+        # This should preferably be a non-root user for security.
+        Type=simple
+        User=youruser   # ← change
+        Group=youruser  # ← change
+        
+        # The full path to the project's root directory.
+        WorkingDirectory=/opt/ready-up
+        
+        # The full command to start the bot.
+        ExecStart=/opt/ready-up/venv/bin/python /opt/ready-up/src/main.py
+        
+        # Restart policy
+        Restart=on-failure
+        RestartSec=5s
+        
+        # Redirect output to the system journal
+        StandardOutput=journal
+        StandardError=journal
+
+        # Security hardening options
+        NoNewPrivileges=true
+        PrivateTmp=true
+        ProtectSystem=full
+        
+        [Install]
+        WantedBy=multi-user.target
+        ```
+    *   Save and exit (`Ctrl+X`, `Y`, `Enter`).
+
+2.  **Enable and Start the Service:**
+    *   Reload `systemd` to make it aware of the new file:
         ```bash
         sudo systemctl daemon-reload
         ```
-    *   Enable the service to start automatically on system boot:
+    *   Enable the service to start automatically on boot:
         ```bash
         sudo systemctl enable readyup.service
         ```
@@ -114,34 +162,33 @@ This guide provides step-by-step instructions for deploying the ReadyUp Bot on a
         ```bash
         sudo systemctl start readyup.service
         ```
-### Hardened unit file (available in repo `readyup.service`)
 
-```ini
-[Unit]
-Description=ReadyUp Discord Bot
-After=network-online.target
-Wants=network-online.target
 
-[Service]
-Type=simple
-User=youruser              # ← change
-Group=youruser             # ← change
-WorkingDirectory=/home/youruser/ready-up
-EnvironmentFile=/home/youruser/ready-up/.env
-ExecStart=/home/youruser/ready-up/venv/bin/python3 /home/youruser/ready-up/src/main.py
+## Step 4: Troubleshooting
 
-Restart=on-failure
-RestartSec=5s
+If the service fails to start, use these commands to diagnose the issue.
 
-# ── security hardening ───────────────────────────────────────────────
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=full
-ProtectHome=true
+-   **Check the High-Level Status:**
+    ```bash
+    sudo systemctl status readyup.service
+    ```
+    *Look for lines that say `Active: active (running)` (success) or `Active: failed` (failure).*
 
-[Install]
-WantedBy=multi-user.target
-```
+-   **View Detailed Logs:**
+    *This is the most useful command for seeing Python errors.*
+    ```bash
+    sudo journalctl -u readyup.service --no-pager -n 50
+    ```
+    *(`-n 50` shows the last 50 lines. `--no-pager` prints directly to the console.)*
+
+-   **Test the Command Manually:**
+    *If `systemd` fails with an obscure error, running the startup command yourself often gives a clearer error message. Make sure you are in the project directory and the venv is active.*
+    ```bash
+    cd /opt/ready-up
+    source venv/bin/activate
+    python src/main.py
+    ```
+
 
 ## Step 5: Monitoring and Maintenance
 
