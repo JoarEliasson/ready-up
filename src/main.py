@@ -30,8 +30,8 @@ async def main():
 
     # --- Dependency Injection ---
     # Repository instantiation (Infrastructure Layer).
-    session_repo = JsonSessionRepository(settings.DATA_DIR / "active_session.json")
-    stats_repo = JsonStatsRepository(settings.DATA_DIR / "user_stats.json")
+    session_repo = JsonSessionRepository(settings.data_dir_path / 'active_session.json')
+    stats_repo = JsonStatsRepository(settings.data_dir_path / 'user_stats.json')
 
     # Application service, injecting the repositories as dependencies.
     readyup_service = ReadyUpService(session_repo, stats_repo)
