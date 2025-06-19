@@ -10,6 +10,7 @@ import logging
 import sys
 from pathlib import Path
 from typing import Any, List, Union
+from datetime import tzinfo
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytz
@@ -35,7 +36,7 @@ class Settings(BaseSettings):
 
     # A private attribute to cache the timezone object after the first access.
     # This prevents redundant, potentially slow lookups and log spam.
-    _timezone: Union[tz, None] = None
+    _timezone: Union[tzinfo, None] = None
 
     @field_validator("ADMIN_ROLE_IDS", mode="before")
     @classmethod
@@ -63,7 +64,7 @@ class Settings(BaseSettings):
         return path
 
     @property
-    def TIMEZONE(self) -> tz:
+    def TIMEZONE(self) -> tzinfo:
         """Return a timezone object, caching the result after the first lookup."""
         if self._timezone is None:
             try:
