@@ -57,14 +57,14 @@ class Settings(BaseSettings):
         return []
 
     @property
-    def DATA_DIR(self) -> Path:
+    def DATA_DIR_PATH(self) -> Path:
         """Return the data directory as a Path object, creating it if it doesn't exist."""
         path = Path(self.DATA_DIR_STR)
         path.mkdir(exist_ok=True)
         return path
 
     @property
-    def TIMEZONE(self) -> tzinfo:
+    def TIMEZONE_INFO(self) -> tzinfo:
         """Return a timezone object, caching the result after the first lookup."""
         if self._timezone is None:
             try:

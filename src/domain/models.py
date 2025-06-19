@@ -22,7 +22,7 @@ def get_aware_now() -> datetime:
     # This two-step process is the most robust way to handle timezones.
     # It gets the current time in universal UTC, then converts it to the
     # configured local timezone, avoiding all naive datetime issues.
-    return datetime.now(timezone.utc).astimezone(settings.TIMEZONE)
+    return datetime.now(timezone.utc).astimezone(settings.TIMEZONE_INFO)
 
 
 class UserStateError(Exception):

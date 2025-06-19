@@ -31,6 +31,7 @@ class ReadyUpBot(commands.Bot):
             service: The application service that holds the bot's logic.
         """
         intents = discord.Intents.default()
+        intents.messages = True
         intents.members = True
 
         # The command_prefix is required but will not be used if only slash

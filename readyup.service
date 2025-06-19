@@ -12,7 +12,6 @@ Group=youruser             # ← change
 WorkingDirectory=/home/youruser/ready-up
 # The full path to the project's root directory.
 # This must match the location where you cloned the repository.
-EnvironmentFile=/home/youruser/ready-up/.env
 ExecStart=/home/youruser/ready-up/venv/bin/python3 /home/youruser/ready-up/src/main.py
 
 Restart=on-failure
@@ -27,7 +26,6 @@ StandardError=journal
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
