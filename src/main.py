@@ -18,8 +18,8 @@ from config import settings
 # Logging configuration for clear, structured output.
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
@@ -30,8 +30,8 @@ async def main():
 
     # --- Dependency Injection ---
     # Repository instantiation (Infrastructure Layer).
-    session_repo = JsonSessionRepository(settings.DATA_DIR / 'active_session.json')
-    stats_repo = JsonStatsRepository(settings.DATA_DIR / 'user_stats.json')
+    session_repo = JsonSessionRepository(settings.DATA_DIR / "active_session.json")
+    stats_repo = JsonStatsRepository(settings.DATA_DIR / "user_stats.json")
 
     # Application service, injecting the repositories as dependencies.
     readyup_service = ReadyUpService(session_repo, stats_repo)

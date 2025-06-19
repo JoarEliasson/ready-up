@@ -32,11 +32,13 @@ class UserStateError(Exception):
     to catch specific, predictable business rule violations and provide
     clear feedback to the user.
     """
+
     pass
 
 
 class UserStatus(Enum):
     """Represents the finite states a user can be in during a session."""
+
     EXPECTED = "Expected"
     ARRIVED = "Arrived"
     EXPIRED = "Expired"
@@ -45,6 +47,7 @@ class UserStatus(Enum):
 @dataclass
 class UserETA:
     """Represents a single user's arrival data for a session."""
+
     user_id: int
     user_name: str
     command_timestamp: datetime
@@ -84,6 +87,7 @@ class Session:
     currently expected to arrive. Once a user arrives or their ETA expires,
     they are removed from the session.
     """
+
     users: dict[int, UserETA] = field(default_factory=dict)
     start_time: datetime = field(default_factory=get_aware_now)
     last_activity_time: datetime = field(default_factory=get_aware_now)
@@ -92,7 +96,13 @@ class Session:
         """Update the session's last activity timestamp to the current time."""
         self.last_activity_time = get_aware_now()
 
-    def set_eta(self, user_id: int, user_name: str, eta_minutes: int | None = None, eta_time: time | None = None) -> UserETA:
+    def set_eta(
+        self,
+        user_id: int,
+        user_name: str,
+        eta_minutes: int | None = None,
+        eta_time: time | None = None,
+    ) -> UserETA:
         """
         Set or update a user's ETA for the session.
 
@@ -110,7 +120,9 @@ class Session:
         if eta_minutes is not None:
             arrival_ts = now + timedelta(minutes=eta_minutes)
         elif eta_time is not None:
-            arrival_ts = now.replace(hour=eta_time.hour, minute=eta_time.minute, second=0, microsecond=0)
+            arrival_ts = now.replace(
+                hour=eta_time.hour, minute=eta_time.minute, second=0, microsecond=0
+            )
             if arrival_ts < now:
                 arrival_ts += timedelta(days=1)
         else:
@@ -120,7 +132,7 @@ class Session:
             user_id=user_id,
             user_name=user_name,
             command_timestamp=now,
-            arrival_timestamp=arrival_ts
+            arrival_timestamp=arrival_ts,
         )
         self.users[user_id] = user_eta
         self._update_activity_time()
@@ -149,7 +161,9 @@ class Session:
         user_eta_instance = self.users[user_id]
 
         if user_eta_instance.status != UserStatus.EXPECTED:
-            raise UserStateError(f"User {user_id} cannot arrive; their status is '{user_eta_instance.status.value}'.")
+            raise UserStateError(
+                f"User {user_id} cannot arrive; their status is '{user_eta_instance.status.value}'."
+            )
 
         user_eta_instance.status = UserStatus.ARRIVED
         user_eta_instance.actual_arrival_time = get_aware_now()
@@ -159,13 +173,16 @@ class Session:
 
     def is_inactive(self) -> bool:
         """Determine if the session has been inactive for longer than the timeout."""
-        inactivity_threshold = timedelta(hours=settings.SESSION_INACTIVITY_TIMEOUT_HOURS)
+        inactivity_threshold = timedelta(
+            hours=settings.SESSION_INACTIVITY_TIMEOUT_HOURS
+        )
         return get_aware_now() > (self.last_activity_time + inactivity_threshold)
 
 
 @dataclass
 class UserStats:
     """Stores and calculates long-term punctuality statistics for a user."""
+
     user_id: int
     user_name: str
     total_sessions: int = 0

@@ -24,6 +24,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Parses and validates application settings from environment variables."""
+
     DISCORD_TOKEN: str
     GUILD_ID: Union[int, None] = None
     ADMIN_ROLE_IDS: List[int] = Field(default_factory=list)
@@ -36,7 +37,7 @@ class Settings(BaseSettings):
     # This prevents redundant, potentially slow lookups and log spam.
     _timezone: Union[tz, None] = None
 
-    @field_validator("ADMIN_ROLE_IDS", mode='before')
+    @field_validator("ADMIN_ROLE_IDS", mode="before")
     @classmethod
     def _parse_comma_separated_ints(cls, v: Any) -> list[int]:
         """Parse a comma-separated string of IDs from an env var into a list of ints."""
@@ -46,7 +47,7 @@ class Settings(BaseSettings):
             if not v.strip():
                 return []
             try:
-                return [int(id_str.strip()) for id_str in v.split(',')]
+                return [int(id_str.strip()) for id_str in v.split(",")]
             except (ValueError, TypeError):
                 log.error(f"Could not parse ADMIN_ROLE_IDS='{v}'.")
                 return []
@@ -76,7 +77,9 @@ class Settings(BaseSettings):
                         "This is expected on non-Linux systems. Falling back to 'pytz'."
                     )
                 else:
-                    log.error(f"CRITICAL: Could not find timezone '{self.DEFAULT_TIMEZONE_STR}' on Linux!")
+                    log.error(
+                        f"CRITICAL: Could not find timezone '{self.DEFAULT_TIMEZONE_STR}' on Linux!"
+                    )
 
                 try:
                     self._timezone = pytz.timezone(self.DEFAULT_TIMEZONE_STR)

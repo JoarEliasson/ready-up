@@ -73,10 +73,15 @@ class ReadyUpBot(commands.Bot):
 
                 self.synced = True
             except discord.errors.Forbidden as e:
-                log.error(f"Failed to sync commands: {e}. Ensure the bot has the 'applications.commands' scope in the server.")
+                log.error(
+                    f"Failed to sync commands: {e}. Ensure the bot has the 'applications.commands' scope in the server."
+                )
             except Exception as e:
-                log.error(f"An unexpected error occurred during command sync: {e}", exc_info=True)
+                log.error(
+                    f"An unexpected error occurred during command sync: {e}",
+                    exc_info=True,
+                )
 
-        log.info(f'Bot logged in as {self.user} (ID: {self.user.id})')
-        log.info('ReadyUp Bot is now online and ready.')
-        log.info('------')
+        log.info(f"Bot logged in as {self.user} (ID: {self.user.id})")
+        log.info("ReadyUp Bot is now online and ready.")
+        log.info("------")

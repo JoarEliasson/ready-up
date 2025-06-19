@@ -32,7 +32,9 @@ class ReadyUpService:
         self.stats_repo = stats_repo
         log.info("ReadyUpService initialized.")
 
-    async def _get_or_create_user_stats(self, user_id: int, user_name: str) -> UserStats:
+    async def _get_or_create_user_stats(
+        self, user_id: int, user_name: str
+    ) -> UserStats:
         """
         Fetch a user's stats, creating a new record if one doesn't exist.
 
@@ -52,7 +54,9 @@ class ReadyUpService:
         stats.user_name = user_name
         return stats
 
-    async def record_eta(self, user_id: int, user_name: str, minutes: int = None, time_str: time = None) -> UserETA:
+    async def record_eta(
+        self, user_id: int, user_name: str, minutes: int = None, time_str: time = None
+    ) -> UserETA:
         """
         Set a user's ETA, creating a new session if one is not active.
 
@@ -70,9 +74,13 @@ class ReadyUpService:
             session = Session()
 
         if minutes:
-            eta = session.set_eta(user_id=user_id, user_name=user_name, eta_minutes=minutes)
+            eta = session.set_eta(
+                user_id=user_id, user_name=user_name, eta_minutes=minutes
+            )
         else:
-            eta = session.set_eta(user_id=user_id, user_name=user_name, eta_time=time_str)
+            eta = session.set_eta(
+                user_id=user_id, user_name=user_name, eta_time=time_str
+            )
 
         await self.session_repo.save_session(session)
         return eta
@@ -120,7 +128,10 @@ class ReadyUpService:
         now = get_aware_now()
         newly_late_users = []
         for user_eta in session.users.values():
-            if user_eta.status == UserStatus.EXPECTED and (now - timedelta(minutes=1)) < user_eta.arrival_timestamp <= now:
+            if (
+                user_eta.status == UserStatus.EXPECTED
+                and (now - timedelta(minutes=1)) < user_eta.arrival_timestamp <= now
+            ):
                 newly_late_users.append(user_eta)
         return newly_late_users
 
@@ -147,7 +158,9 @@ class ReadyUpService:
             if user_eta.should_expire():
                 user_eta.status = UserStatus.EXPIRED
                 expired_users_info.append(user_eta)
-                stats = await self._get_or_create_user_stats(user_eta.user_id, user_eta.user_name)
+                stats = await self._get_or_create_user_stats(
+                    user_eta.user_id, user_eta.user_name
+                )
                 stats.record_no_show()
                 all_stats = await self.stats_repo.get_all_stats()
                 all_stats[user_id] = stats
@@ -184,4 +197,11 @@ class ReadyUpService:
     async def get_leaderboard(self) -> list[UserStats]:
         """Retrieve all user stats, sorted for a leaderboard display."""
         all_stats = await self.stats_repo.get_all_stats()
-        return sorted(all_stats.values(), key=lambda s: (s.no_shows, -s.on_time_percentage, s.average_lateness_seconds))
+        return sorted(
+            all_stats.values(),
+            key=lambda s: (
+                s.no_shows,
+                -s.on_time_percentage,
+                s.average_lateness_seconds,
+            ),
+        )

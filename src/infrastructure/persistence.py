@@ -30,8 +30,10 @@ log = logging.getLogger(__name__)
 # converting ISO datetime strings into aware datetime objects.
 # This is a far more reliable approach than manual parsing.
 
+
 class PydanticUserETA(BaseModel):
     """A Pydantic model for validating UserETA data from JSON."""
+
     user_id: int
     user_name: str
     command_timestamp: datetime
@@ -42,6 +44,7 @@ class PydanticUserETA(BaseModel):
 
 class PydanticSession(BaseModel):
     """A Pydantic model for validating Session data from JSON."""
+
     users: Dict[int, PydanticUserETA]
     start_time: datetime
     last_activity_time: datetime
@@ -49,6 +52,7 @@ class PydanticSession(BaseModel):
 
 class PydanticUserStats(BaseModel):
     """A Pydantic model for validating UserStats data from JSON."""
+
     user_id: int
     user_name: str
     total_sessions: int = 0
@@ -60,6 +64,7 @@ class PydanticUserStats(BaseModel):
 
 class CustomJSONEncoder(json.JSONEncoder):
     """A custom JSON encoder to handle non-standard types like datetimes and enums."""
+
     def default(self, o):
         """Handle datetime and Enum objects during JSON serialization."""
         if isinstance(o, datetime):
@@ -71,6 +76,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 class JsonRepository:
     """A base class for JSON repositories that provides thread-safe, atomic file writes."""
+
     def __init__(self, file_path: Path):
         """
         Initialize the repository.
@@ -88,7 +94,7 @@ class JsonRepository:
             if not self._file_path.exists():
                 return None
             try:
-                async with aiofiles.open(self._file_path, 'r', encoding='utf-8') as f:
+                async with aiofiles.open(self._file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
                     if not content:
                         return None
@@ -103,9 +109,9 @@ class JsonRepository:
         # data corruption if the bot crashes mid-write. The asyncio lock
         # prevents race conditions between different bot tasks.
         async with self._lock:
-            temp_path = self._file_path.with_suffix(f'.json.tmp.{uuid.uuid4()}')
+            temp_path = self._file_path.with_suffix(f".json.tmp.{uuid.uuid4()}")
             try:
-                async with aiofiles.open(temp_path, 'w', encoding='utf-8') as f:
+                async with aiofiles.open(temp_path, "w", encoding="utf-8") as f:
                     await f.write(json.dumps(data, cls=CustomJSONEncoder, indent=2))
                 os.replace(temp_path, self._file_path)
             except IOError as e:
@@ -142,17 +148,19 @@ class JsonSessionRepository(JsonRepository):
                     command_timestamp=p_eta.command_timestamp,
                     arrival_timestamp=p_eta.arrival_timestamp,
                     status=p_eta.status,
-                    actual_arrival_time=p_eta.actual_arrival_time
+                    actual_arrival_time=p_eta.actual_arrival_time,
                 )
                 for uid, p_eta in pydantic_session.users.items()
             }
             return Session(
                 users=domain_users,
                 start_time=pydantic_session.start_time,
-                last_activity_time=pydantic_session.last_activity_time
+                last_activity_time=pydantic_session.last_activity_time,
             )
         except ValidationError as e:
-            log.error(f"Session data validation failed in {self._file_path}. Data might be corrupt. Error: {e}")
+            log.error(
+                f"Session data validation failed in {self._file_path}. Data might be corrupt. Error: {e}"
+            )
             return None
 
     async def save_session(self, session: Session):
@@ -160,7 +168,7 @@ class JsonSessionRepository(JsonRepository):
         data = {
             "start_time": session.start_time,
             "last_activity_time": session.last_activity_time,
-            "users": {uid: eta.__dict__ for uid, eta in session.users.items()}
+            "users": {uid: eta.__dict__ for uid, eta in session.users.items()},
         }
         await self._write_file(data)
 
