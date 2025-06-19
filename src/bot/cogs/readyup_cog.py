@@ -224,9 +224,12 @@ class ReadyUpCog(commands.Cog):
             else:
                 expected.append(f"⏳ {mention} (ETA: <t:{int(u_eta.arrival_timestamp.timestamp())}:R>)")
 
-        if arrived: embed.add_field(name="Arrived", value="\n".join(arrived), inline=False)
-        if expected: embed.add_field(name="Expected", value="\n".join(expected), inline=False)
-        if expired: embed.add_field(name="ETA Expired (No-Show)", value="\n".join(expired), inline=False)
+        if arrived:
+            embed.add_field(name="Arrived", value="\n".join(arrived), inline=False)
+        if expected:
+            embed.add_field(name="Expected", value="\n".join(expected), inline=False)
+        if expired:
+            embed.add_field(name="ETA Expired (No-Show)", value="\n".join(expired), inline=False)
 
         embed.set_footer(text=f"Session started <t:{int(session.start_time.timestamp())}:R>")
         await interaction.followup.send(embed=embed)

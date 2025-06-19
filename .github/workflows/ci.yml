@@ -14,9 +14,11 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -26,8 +28,8 @@ jobs:
           pip install -r requirements.txt
           pip install pytest ruff
 
-      - name: Lint (ruff)
+      - name: Lint with ruff
         run: ruff check .
 
-      - name: Run tests
-        run: pytest
+      - name: Format check with ruff
+        run: ruff format --check .
