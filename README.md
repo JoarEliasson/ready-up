@@ -1,289 +1,134 @@
 # ReadyUp Discord Bot
+![ReadyUp logo](ready-up-logo-small.png "ReadyUp logo")
 
-ReadyUp is a lightweight Discord bot designed to enhance the Discord server experience by coordinating and tracking user arrival times for activities.<br>
-Users can set an expected arrival time for any group activity, mark their arrival either manually or automatically (via voice channel join), and receive scheduled notifications if they’re late.<br>
-The bot also maintains statistics on on-time and late arrivals and persists data between restarts.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10 | 3.11 | 3.12](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue?logo=python)](https://www.python.org/)
+[![CI](https://github.com/JoarEliasson/ready-up/actions/workflows/ci.yml/badge.svg)](https://github.com/JoarEliasson/ready-up/actions/workflows/ci.yml)
 
+## Table of Contents
+1. [Features](#features)
+2. [Commands](#commands)
+3. [Project Structure](#project-structure)
+4. [Setup & Installation](#setup-and-installation)
+5. [Running the Bot Locally](#running-the-bot-locally)
+6. [Data and Backups](#data-and-backups)
+
+ReadyUp is a Discord bot designed to help coordinate group activities by tracking user arrival times, sending notifications, and maintaining punctuality statistics.
+It uses a "Live Stats" model, ensuring that user statistics are always up-to-date the moment a user arrives or their ETA expires.
 
 ## Features
 
-- **Set ETA:**  
-  Use the command `!eta HH:MM` (24-hour format) to set your expected arrival time for a group activity.
-  
-- **Mark Arrival:**  
-  Mark your arrival manually with `!ready` or `!rdy`, or automatically by joining a voice channel.
-  
-- **Scheduled Notifications:**  
-  Receive notifications 1 minute before, and 15, 30, 60 minutes late, as well as a 24-hour no-show alert.
-  
-- **User Stats:**  
-  Check your stats using `!stats @User`.
-  
-- **Rules Display:**  
-  Display the rules with `!rules`.
+-   **ETA Tracking**: Users can set their ETA in minutes (`/eta minutes <number>`) or by specifying a time (`/eta time <HH:MM>`).
+-   **Live Punctuality Tracking**: The bot calculates exactly how late (or on-time) a user is the moment they use the `/arrived` command.
+-   **No-Show Detection**: If a user doesn't arrive within a configurable time after their ETA, their status is marked as "Expired," and it's recorded as a no-show in their stats.
+-   **Immediate Stat Updates**: User stats are calculated and saved the moment their "journey" for an ETA is complete (either by arriving or by their ETA expiring).
+-   **Public Session Status**: View the current status of all participants who are still expected to arrive using `/status`.
+-   **Stats**: Check personal or another user's stats (`/stats`), including on-time percentage, average lateness, and total no-shows.
+-   **Leaderboard**: Display a server-wide punctuality leaderboard with `/leaderboard`.
+-   **Help & Ping Commands**: Onboard new users with `/help` and check bot latency with `/ping`.
+-   **Timezone Aware**: All times are localized to a configurable server timezone.
+-   **Robust Storage**: Designed with a layered architecture, data validation, and file-locking to prevent data corruption and race conditions.
 
-- **Data Persistence:**  
-  User data (ETA, on-time count, late count, notifications sent) is stored in a JSON file (`user_data.json`) and automatically loaded and saved.
+## Commands
 
-## Requirements
+-   `/eta minutes <number>`: Set your ETA in minutes from now (e.g., `/eta minutes 15`).
+-   `/eta time <HH:MM>`: Set your ETA to a specific time (e.g., `/eta time 21:00`).
+-   `/arrived`: Mark yourself as arrived. You must have an active ETA to use this command.
+-   `/status`: Shows who is still expected to arrive in the current session.
+-   `/stats [user]`: View your own or another user's punctuality statistics. The `[user]` argument is optional.
+-   `/leaderboard`: Displays the server's punctuality leaderboard.
+-   `/ping`: Checks if the bot is online and its response time.
+-   `/help`: Shows a helpful embed with command information.
 
-- Python 3.7+
-- A Discord Bot Token (obtainable from the [Discord Developer Portal](https://discord.com/developers/applications))
-- Dependencies as listed in `requirements.txt`
+| Command             | Example           | Description                                 |
+|---------------------|-------------------|---------------------------------------------|
+| `/eta minutes <n>`  | `/eta minutes 15` | Set ETA *n* minutes from now                |
+| `/eta time <HH:MM>` | `/eta time 21:00` | Set ETA to a specific local time            |
+| `/arrived`          | —                 | Mark yourself arrived (requires active ETA) |
+| `/status`           | —                 | Show outstanding arrivals                   |
+| `/stats [user]`     | `/stats @Alice`   | View punctuality stats (default: yourself)  |
+| `/leaderboard`      | —                 | Show server-wide leaderboard                |
+| `/ping`             | —                 | Check bot latency                           |
+| `/help`             | —                 | Show command help                           |
 
-## Running the Bot on a Local PC
+## Project Structure
 
-### For UNIX/Linux/macOS
+The project follows a simplified layered architecture to promote SOLID design principles, maintainability, and testability.
 
-1. **Clone the Repository:**
+- [`src/main.py`](src/main.py) – main application entry point  
+- [`src/config.py`](src/config.py) – loads & validates environment variables  
+- [`src/domain`](src/domain) – core business logic and models (Session, UserETA, Stats)  
+- [`src/application`](src/application) – application services (use-cases) and repository interfaces  
+- [`src/infrastructure`](src/infrastructure) – external concerns, primarily JSON file persistence  
+- [`src/bot`](src/bot) – Discord-specific logic, command registration, lifecycle
 
-   ```bash
-   git clone https://github.com/yourusername/readyup-bot.git
-   cd readyup-bot
-   ```
 
-2. **Create a Virtual Environment and Activate It:**
+## Setup and Installation
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install the Dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Create the `.env` File:**
-
-   Create a file named `.env` in the project root with the following content:
-   
-   ```bash
-   echo "DISCORD_TOKEN=your_discord_bot_token_here" > .env
-   ```
-   
-   Alternatively, you can use a text editor to create and edit the file.
-
-5. **Run the Bot:**
-
-   ```bash
-   python main.py
-   ```
-
-### For Windows
-
-1. **Clone the Repository:**
-
-   Open Command Prompt or PowerShell and run:
-   
-   ```cmd
-   git clone https://github.com/yourusername/readyup-bot.git
-   cd readyup-bot
-   ```
-
-2. **Create a Virtual Environment and Activate It:**
-
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Install the Dependencies:**
-
-   ```cmd
-   pip install -r requirements.txt
-   ```
-
-4. **Create the `.env` File:**
-
-   Create a new file named `.env` in the project directory and add:
-   
-   ```
-   DISCORD_TOKEN=your_discord_bot_token_here
-   ```
-   
-   You can create this file using Notepad or another text editor.
-
-5. **Run the Bot:**
-
-   ```cmd
-   python main.py
-   ```
-
-## Running the Bot on a DigitalOcean Droplet
+These steps set up a **local development** environment to test the bot. For full production deployment instructions on a Linux server, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ### Prerequisites
 
-- A DigitalOcean account with an Ubuntu droplet (LTS version recommended)
-- SSH access to your droplet
-- Git, Python 3, pip, and virtual environment tools installed on the droplet
+- Python 3.10 or newer
+- A Discord Bot Application (create one on the [Discord Developer Portal](https://discord.com/developers/applications))
 
-### Setup Steps
+#### Discord Developer Portal checklist
 
-1. **SSH into Your Droplet:**
+1.  **Create an Application** and then a **Bot** within that application.
+2.  Under the "Bot" tab, enable the **Server Members Intent**. This is required for the bot to see user information like names and avatars.
+3.  Go to the "OAuth2" -> "URL Generator" tab. Select the following scopes:
+    -   `bot`
+    -   `applications.commands`
+4.  Copy the generated URL and use it to invite the bot to your server.
 
-   ```bash
-   ssh root@your_droplet_ip
-   ```
+### Local Installation
 
-2. **Update and Install Required Packages:**
-
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   sudo apt install python3 python3-pip python3-venv git -y
-   ```
-
-3. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/yourusername/readyup-bot.git
-   cd readyup-bot
-   ```
-
-4. **Set Up a Virtual Environment:**
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-5. **Install the Dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-6. **Create the `.env` File:**
-
-   ```bash
-   echo "DISCORD_TOKEN=your_discord_bot_token_here" > .env
-   ```
-
-7. **(Optional) Configure Logging:**  
-   If desired, modify your logging setup in `main.py` to log to a file.
-
-8. **Set Up Process Management with systemd:**
-
-   Create a systemd service file:
-   
-   ```bash
-   sudo nano /etc/systemd/system/readyup.service
-   ```
-
-   Paste the following content (adjust paths and the user if needed):
-
-   ```ini
-   [Unit]
-   Description=ReadyUp Discord Bot
-   After=network.target
-
-   [Service]
-   User=root
-   WorkingDirectory=/root/readyup-bot
-   ExecStart=/root/readyup-bot/venv/bin/python main.py
-   Restart=always
-   RestartSec=10
-   EnvironmentFile=/root/readyup-bot/.env
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-
-   Save and exit (press `CTRL+X`, then `Y`, then `Enter`).
-
-9. **Reload systemd and Start the Service:**
-
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable readyup.service
-   sudo systemctl start readyup.service
-   ```
-
-10. **Check the Service Status:**
-
+1.  **Clone the repository:**
     ```bash
-    sudo systemctl status readyup.service
+    git clone https://github.com/JoarEliasson/ready-up.git
+    cd ready-up
     ```
 
-11. **View the Logs:**
-
+2.  **Create a virtual environment:**
     ```bash
-    sudo journalctl -u readyup.service -f
+    python3 -m venv venv
+    source venv/bin/activate
     ```
 
-### Updating the Code on the Droplet
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-1. **SSH into Your Droplet and Navigate to the Project Directory:**
+4.  **Configure Environment Variables:**
+    -   Copy the example file: `cp .env.example .env`
+    -   Edit the `.env` file with your specific configuration:
+        -   `DISCORD_TOKEN`: Your bot's token.
+        -   `GUILD_ID`: Your Discord server's ID for instant command updates.
+    ```bash
+    nano .env    # set DISCORD_TOKEN, GUILD_ID, etc.
+    ```
 
-   ```bash
-   ssh root@your_droplet_ip
-   cd /root/readyup-bot
-   ```
+### Running the Bot Locally
 
-2. **Pull the Latest Changes from GitHub:**
+To run the bot directly from your terminal for testing:
 
-   ```bash
-   git pull origin main
-   ```
+```bash
+python src/main.py
+```
 
-3. **Restart the Service:**
+## Data and Backups
 
-   ```bash
-   sudo systemctl restart readyup.service
-   ```
+The bot stores all its data (active session, user stats) in JSON files within the `data/` directory.
 
-## Setting the Correct Timezone on Your Droplet
+**Back this folder up regularly.** You can set up a simple cron job on your server to copy the `data/` directory to a safe location.
 
-If your bot’s time calculations appear off, it may be due to an incorrect system timezone on your droplet. The bot uses the system's timezone (via `datetime.now()`), so ensuring the correct timezone is set is crucial.
+**Example Cron Job for Daily Backups:**
+Run `crontab -e` and add the following line to create a daily backup at 2 AM:
 
-### Method 1: Using `timedatectl` (Recommended)
+```cron
+0 2 * * * /usr/bin/rsync -a /path/to/ready-up/data/ /path/to/backups/ready-up/
+```
 
-1. **Check the current timezone:**
-   ```bash
-   timedatectl
-   ```
-
-2. **List available timezones (e.g., for Europe):**
-   ```bash
-   timedatectl list-timezones | grep Europe
-   ```
-
-3. **Set the timezone to your preferred region (e.g., Stockholm or Berlin):**
-   ```bash
-   sudo timedatectl set-timezone Europe/Stockholm
-   ```
-   or
-   ```bash
-   sudo timedatectl set-timezone Europe/Berlin
-   ```
-
-4. **Verify the change:**
-   ```bash
-   timedatectl
-   ```
-
-### Method 2: Using `dpkg-reconfigure` (Debian/Ubuntu Systems)
-
-1. **Reconfigure the timezone:**
-   ```bash
-   sudo dpkg-reconfigure tzdata
-   ```
-
-2. **Follow the prompts** to select your geographic area (e.g., Europe) and the appropriate city.
-3. **Confirm the system time:**
-   ```bash
-   date
-   ```
-
-After updating the timezone, your bot will use the correct local time for scheduling notifications and other time-based functions.
-
-## Additional Notes
-
-- The bot automatically creates and updates `user_data.json` in the project directory.
-- Use systemd to manage the bot process for automatic restarts on failure or reboot.
-- Logs can be viewed via systemd’s journal or by configuring file logging in `main.py`.
-
-## License
-
-[MIT License]
+> **Tip — safer rsync:**  
+> If you normally include `--delete` in your rsync scripts, omit it here unless you are 100 % sure; a typo could wipe your history of punctuality stats.
