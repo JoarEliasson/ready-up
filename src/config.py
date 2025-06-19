@@ -14,7 +14,6 @@ from datetime import tzinfo
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytz
-from dateutil.tz import tz
 from dotenv import load_dotenv
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
