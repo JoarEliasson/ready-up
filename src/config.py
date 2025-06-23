@@ -87,7 +87,7 @@ class Settings(BaseSettings):
                         "Falling back to UTC. Please check your .env file."
                     )
                     self._timezone_cache = pytz.utc
-        return self._timezone
+        return self._timezone_cache
 
     model_config = SettingsConfigDict(
         env_file=".env",
