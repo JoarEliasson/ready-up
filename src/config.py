@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     @property
     def timezone_info(self) -> tzinfo:
         """Return a timezone object, caching the result after the first lookup."""
-        if self._timezone is None:
+        if self._timezone_cache is None:
             try:
                 self._timezone_cache = ZoneInfo(self.DEFAULT_TIMEZONE_STR)
             except ZoneInfoNotFoundError:
