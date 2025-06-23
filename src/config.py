@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     DISCORD_TOKEN: str
     GUILD_ID: Union[int, None] = None
     ADMIN_ROLE_IDS: List[int] = Field(default_factory=list)
-    DEFAULT_TIMEZONE: str = "Europe/Stockholm"
+    DEFAULT_TIMEZONE_STR: str = "Europe/Stockholm"
     DATA_DIR: str = "data"
     ETA_EXPIRATION_MINUTES: int = 60
     SESSION_INACTIVITY_TIMEOUT_HOURS: int = 3
@@ -67,25 +67,25 @@ class Settings(BaseSettings):
         """Return a timezone object, caching the result after the first lookup."""
         if self._timezone is None:
             try:
-                self._timezone = ZoneInfo(self.DEFAULT_TIMEZONE)
+                self._timezone = ZoneInfo(self.DEFAULT_TIMEZONE_STR)
             except ZoneInfoNotFoundError:
                 # The 'tzdata' package is often missing on non-Linux systems.
                 # In this case, ZoneInfo is expected to fail and can safely fall back.
                 if "linux" not in sys.platform:
                     log.warning(
-                        f"Could not find timezone '{self.DEFAULT_TIMEZONE}' using 'zoneinfo'. "
+                        f"Could not find timezone '{self.DEFAULT_TIMEZONE_STR}' using 'zoneinfo'. "
                         "This is expected on non-Linux systems. Falling back to 'pytz'."
                     )
                 else:
                     log.error(
-                        f"CRITICAL: Could not find timezone '{self.DEFAULT_TIMEZONE}' on Linux!"
+                        f"CRITICAL: Could not find timezone '{self.DEFAULT_TIMEZONE_STR}' on Linux!"
                     )
 
                 try:
-                    self._timezone = pytz.timezone(self.DEFAULT_TIMEZONE)
+                    self._timezone = pytz.timezone(self.DEFAULT_TIMEZONE_STR)
                 except pytz.UnknownTimeZoneError:
                     log.error(
-                        f"Timezone '{self.DEFAULT_TIMEZONE}' is not valid. "
+                        f"Timezone '{self.DEFAULT_TIMEZONE_STR}' is not valid. "
                         "Falling back to UTC. Please check your .env file."
                     )
                     self._timezone = pytz.utc
