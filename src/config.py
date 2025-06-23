@@ -33,9 +33,14 @@ class Settings(BaseSettings):
     ETA_EXPIRATION_MINUTES: int = 60
     SESSION_INACTIVITY_TIMEOUT_HOURS: int = 3
 
-    # A private attribute to cache the timezone object after the first access.
-    # This prevents redundant, potentially slow lookups and log spam.
-    _timezone_cache: Union[tzinfo, None] = None
+    def __init__(self, **kwargs):
+        """
+        Initializes the settings object and the private timezone cache.
+        This explicitly creates the `_timezone_cache` attribute on the instance,
+        preventing potential AttributeErrors on different platforms or versions.
+        """
+        super().__init__(**kwargs)
+        self._timezone_cache: Union[tzinfo, None] = None
 
     @field_validator("ADMIN_ROLE_IDS", mode="before")
     @classmethod
