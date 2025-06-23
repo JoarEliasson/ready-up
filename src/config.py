@@ -33,14 +33,7 @@ class Settings(BaseSettings):
     ETA_EXPIRATION_MINUTES: int = 60
     SESSION_INACTIVITY_TIMEOUT_HOURS: int = 3
 
-    def __init__(self, **kwargs):
-        """
-        Initializes the settings object and the private timezone cache.
-        This explicitly creates the `_timezone_cache` attribute on the instance,
-        preventing potential AttributeErrors on different platforms or versions.
-        """
-        super().__init__(**kwargs)
-        self._timezone_cache: Union[tzinfo, None] = None
+    _timezone_cache: Union[tzinfo, None] = None
 
     @field_validator("ADMIN_ROLE_IDS", mode="before")
     @classmethod
@@ -72,7 +65,7 @@ class Settings(BaseSettings):
         """Return a timezone object, caching the result after the first lookup."""
         if self._timezone_cache is None:
             try:
-                self._timezone_cache = ZoneInfo(self.DEFAULT_TIMEZONE_STR)
+                self._timezone_cache = ZoneInfo(self.DEFAULT_TIMEZONE)
             except ZoneInfoNotFoundError:
                 # The 'tzdata' package is often missing on non-Linux systems.
                 # In this case, ZoneInfo is expected to fail and can safely fall back.
@@ -87,13 +80,13 @@ class Settings(BaseSettings):
                     )
 
                 try:
-                    self._timezone = pytz.timezone(self.DEFAULT_TIMEZONE)
+                    self._timezone_cache = pytz.timezone(self.DEFAULT_TIMEZONE)
                 except pytz.UnknownTimeZoneError:
                     log.error(
                         f"Timezone '{self.DEFAULT_TIMEZONE}' is not valid. "
                         "Falling back to UTC. Please check your .env file."
                     )
-                    self._timezone = pytz.utc
+                    self._timezone_cache = pytz.utc
         return self._timezone
 
     model_config = SettingsConfigDict(
